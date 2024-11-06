@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, Alert, TextInput } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { cifrarSimetrico, descifrarSimetrico } from './src/utils/cifrado';
 import { generarClavesAsimetricas, cifrarAsimetricoEnBackend, descifrarAsimetricoEnBackend } from './src/utils/cifradoBackend';
 
@@ -11,11 +10,11 @@ export default function App() {
   const [file, setFile] = useState<DocumentPicker.DocumentResult | null>(null);
   const [publicKey, setPublicKey] = useState<string>('');
   const [privateKey, setPrivateKey] = useState<string>('');
-  const [downloadUri, setDownloadUri] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>(''); // Nombre del archivo a guardar
   const [inputText, setInputText] = useState<string>('');
   const [encryptionKey, setEncryptionKey] = useState<string>(''); // Clave para cifrar y descifrar
 
+  // Selecciona un archivo del dispositivo
   const pickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -25,7 +24,6 @@ export default function App() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setFile(result.assets[0]);
-        setDownloadUri(null);
       }
     } catch (error) {
       console.error("Error al seleccionar el archivo:", error);
@@ -33,6 +31,7 @@ export default function App() {
     }
   };
 
+  // Cifra y guarda un archivo en el dispositivo
   const encryptAndSaveFile = async (type: 'simetrico' | 'asimetrico') => {
     if (!file || !file.uri) {
       Alert.alert("Error", "Primero selecciona un archivo.");
@@ -61,16 +60,15 @@ export default function App() {
       const fileUri = `${FileSystem.documentDirectory}${fileName}.txt`;
       await FileSystem.writeAsStringAsync(fileUri, encryptedContent, { encoding: FileSystem.EncodingType.UTF8 });
 
-      setDownloadUri(fileUri);
-      Alert.alert("Archivo cifrado y guardado", "El archivo se ha guardado y está listo para ser abierto.");
-
-      openEncryptedFile(fileUri);
+      Alert.alert("Archivo cifrado y guardado", `Archivo guardado como: ${fileName}.txt en el dispositivo.`);
+      setFileName(`${fileName}_cifrado.txt`);  // Actualiza el nombre para descifrar posteriormente.
     } catch (error) {
       console.error("Error al cifrar el archivo:", error);
       Alert.alert("Error", "Hubo un problema al cifrar el archivo.");
     }
   };
 
+  // Descifra el archivo guardado en el dispositivo
   const decryptAndOpenFile = async (type: 'simetrico' | 'asimetrico') => {
     if (!file || !file.uri) {
       Alert.alert("Error", "Primero selecciona un archivo cifrado.");
@@ -102,29 +100,13 @@ export default function App() {
         return;
       }
 
-      const fileUri = `${FileSystem.documentDirectory}${fileName}_descifrado.txt`;
-      await FileSystem.writeAsStringAsync(fileUri, decryptedContent, { encoding: FileSystem.EncodingType.UTF8 });
+      const decryptedFileUri = `${FileSystem.documentDirectory}${fileName}_descifrado.txt`;
+      await FileSystem.writeAsStringAsync(decryptedFileUri, decryptedContent, { encoding: FileSystem.EncodingType.UTF8 });
 
-      setDownloadUri(fileUri);
-      Alert.alert("Archivo descifrado y guardado", "El archivo descifrado se ha guardado y está listo para ser abierto.");
-
-      openEncryptedFile(fileUri);
+      Alert.alert("Archivo descifrado", `Archivo guardado como: ${fileName}_descifrado.txt en el dispositivo.`);
     } catch (error) {
       console.error("Error al descifrar el archivo:", error);
       Alert.alert("Error", "Hubo un problema al descifrar el archivo.");
-    }
-  };
-
-  const openEncryptedFile = async (uri: string) => {
-    try {
-      if (Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
-      } else {
-        Alert.alert("No se puede abrir", "La función de compartir no está disponible en este dispositivo.");
-      }
-    } catch (error) {
-      console.error("Error al intentar abrir el archivo:", error);
-      Alert.alert("Error", "Hubo un problema al abrir el archivo.");
     }
   };
 
