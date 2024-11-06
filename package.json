@@ -9,13 +9,22 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "crypto-js": "^4.2.0",
     "expo": "~51.0.28",
+    "expo-document-picker": "~12.0.2",
+    "expo-file-system": "~17.0.1",
     "expo-status-bar": "~1.12.1",
+    "js-crypto-rsa": "^1.0.7",
     "react": "18.2.0",
-    "react-native": "0.74.5"
+    "react-native": "0.74.5",
+    "react-native-rsa-native": "^2.0.5",
+    "expo-crypto": "~13.0.2",
+    "expo-random": "~14.0.1",
+    "expo-sharing": "~12.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/crypto-js": "^4.2.2",
     "@types/react": "~18.2.45",
     "typescript": "^5.1.3"
   },
